@@ -9,10 +9,10 @@ from langchain_openai import ChatOpenAI
 class ConfigLoader:
     def __init__(self):
         print("Loaded config...")
-        self.config = load_config
+        self.config = load_config()
 
     def __getitem__(self, key):
-        self.config[key]
+        return self.config[key]
 
 class ModelLoader(BaseModel):
     model_provider: Literal["groq", "openai"] = "groq"
