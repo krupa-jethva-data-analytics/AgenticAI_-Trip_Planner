@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from agent.agentic_workflow import GraphBuilder
-from utils.save_to_document import save_document
+from agents.agenticworkflow. import GraphBuilder
+from utils.save_to_docs import save_document
 from starlette.responses import JSONResponse
 import os
 import datetime
@@ -12,15 +12,15 @@ load_dotenv()
 app = FastAPI()
 
 
-class QueryRequest(BaseModel):
-    "query":str
+class QueryRequest(BaseModel): #data structure
+    question: str
 
-@app.post("/query"):
-async def query_travel_agent(query:QueryRequest):
+@app.post("/query")
+async def query_travel_agent(query:QueryRequest): #function that FastAPI executes
     try:
-        print(query)
+        print(query) #query = QueryRequest(question="Plan a trip to Goa for 5 days") -> query.question
         graph = GraphBuilder(model_provider="groq")
-        react_app = graph()
+        react_app = graph() #Run the GraphBuilder's __call__() method and create the actual LangGraph application.
 
         png_graph = react_app.get_graph().draw_mermaid_png()
         with open("my_graph.png", "wb") as f:

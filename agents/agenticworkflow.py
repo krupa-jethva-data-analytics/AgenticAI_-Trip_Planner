@@ -10,7 +10,7 @@ from tools.currency_conversion_tool import CurrencyConverterTool
 
 
 class GraphBuilder():
-    def __init__(Self, model_provider: str = "groq"):
+    def __init__(self, model_provider: str = "groq"):
         self.model_loader = ModelLoader(model_provider=model_provider)
         self.llm = self.model_loader.load_llm()
         
@@ -32,7 +32,7 @@ class GraphBuilder():
         
         self.system_prompt = SYSTEM_PROMPT
 
-    def agent_function(Self, state:MessagesState):
+    def agent_function(self, state:MessagesState):
         """Main agent function"""
         user_question = state["messages"]
         input_question = [self.system_prompt] + user_question
@@ -40,7 +40,7 @@ class GraphBuilder():
         return {"messages": [response]}
 
 
-    def build_graph(Self):
+    def build_graph(self):
         graph_builder = StateGraph(MessagesState)
         graph_builder.add_node("agent", self.agent_function)
         graph_builder.add_node("tools", ToolNode(tools=self.tools))
