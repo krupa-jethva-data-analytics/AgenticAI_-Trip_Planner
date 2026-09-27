@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import datetime
 
-BASE_URL = "http://127.0.0.1:8000"  # Backend endpoint
+BASE_URL = "https://agenticai-trip-planner-yc94.onrender.com"  # Backend endpoint
 
 # ----------------------------------------------------------------------------
 # Page config
