@@ -17,13 +17,13 @@ class Calculator:
     @staticmethod
     def calculate_total(x: dict) -> float:
         """
-        Calculate sum of the given list of numbers
-
+        Calculate the sum of the given values.
+        
         Args:
-            x (list): List of floating numbers
-
+        x (dict): Dictionary containing numeric values.
+        
         Returns:
-            float: The sum of numbers in the list x
+        float: The sum of all numeric values in the dictionary.
         """
         return sum(float(value) for value in x.values())
     
