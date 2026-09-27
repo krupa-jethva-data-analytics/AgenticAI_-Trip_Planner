@@ -6,6 +6,8 @@ class CurrencyConverter:
     
     def convert(self, amount:float, from_currency:str, to_currency:str):
         """Convert the amount from one currency to another"""
+        amount = float(amount)
+        
         url = f"{self.base_url}/{from_currency}"
         response = requests.get(url)
         if response.status_code != 200:
