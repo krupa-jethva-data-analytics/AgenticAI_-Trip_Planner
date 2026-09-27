@@ -10,14 +10,19 @@ class CalculatorTool:
     def _setup_tools(self) -> List:
         """Setup all tools for the calculator tool"""
         @tool
-        def estimate_total_hotel_cost(price_per_night:str, total_days:float) -> float:
+        def estimate_total_hotel_cost(price_per_night:float, total_days:int) -> float:
             """Calculate total hotel cost"""
             return self.calculator.multiply(price_per_night, total_days)
         
         @tool
-        def calculate_total_expense(*costs: float) -> float:
-            """Calculate total expense of the trip"""
-            return self.calculator.calculate_total(*costs)
+        def calculate_total_expense(costs: dict) -> float:
+            """Calculate total expense of the trip.
+            
+            Args:
+            costs: A flat dict mapping category name to numeric amount,
+            e.g. {"hotel": 4500, "food": 2000, "transport": 1200}.
+            Do NOT nest currency info inside the values — just the number."""
+            return self.calculator.calculate_total(costs)
         
         @tool
         def calculate_daily_expense_budget(total_cost: float, days: int) -> float:

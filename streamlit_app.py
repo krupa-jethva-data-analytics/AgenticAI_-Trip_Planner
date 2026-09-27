@@ -1,60 +1,169 @@
-
 import streamlit as st
 import requests
 import datetime
 
-# from exception.exceptions import TradingBotException
-import sys
-
 BASE_URL = "http://127.0.0.1:8000"  # Backend endpoint
 
+# ----------------------------------------------------------------------------
+# Page config
+# ----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="🌍 Travel Planner Agentic Application",
+    page_title="Travel Planner Agentic Application",
     page_icon="🌍",
     layout="centered",
     initial_sidebar_state="expanded",
 )
 
-st.title("🌍 Travel Planner Agentic Application")
+# ----------------------------------------------------------------------------
+# Custom styling
+# ----------------------------------------------------------------------------
+st.markdown(
+    """
+    <style>
+        .main .block-container {
+            padding-top: 2rem;
+            max-width: 800px;
+        }
+        .app-header {
+            text-align: center;
+            padding: 1rem 0 0.5rem 0;
+        }
+        .app-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.2rem;
+        }
+        .app-header p {
+            color: var(--text-color-secondary, #6b7280);
+            font-size: 1rem;
+            margin-top: 0;
+        }
+        .stChatMessage {
+            border-radius: 12px;
+        }
+        div[data-testid="stChatInput"] textarea {
+            border-radius: 10px;
+        }
+        .plan-footer {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-# Initialize chat history
+# ----------------------------------------------------------------------------
+# Sidebar
+# ----------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown("## 🌍 Travel Planner")
+    st.markdown(
+        "An AI travel agent that builds day-by-day itineraries, "
+        "suggests places to stay, and estimates costs."
+    )
+    st.divider()
+    st.markdown("### Try asking:")
+    example_prompts = [
+        "Plan a trip to Goa for 5 days",
+        "Weekend getaway near Mumbai under ₹15,000",
+        "7-day Himachal itinerary for a family with kids",
+        "Budget backpacking trip through Rajasthan",
+    ]
+    for ex in example_prompts:
+        if st.button(ex, use_container_width=True):
+            st.session_state["pending_prompt"] = ex
+
+    st.divider()
+    if st.button("🗑️ Clear chat", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+
+    st.caption(f"Backend: `{BASE_URL}`")
+
+# ----------------------------------------------------------------------------
+# Header
+# ----------------------------------------------------------------------------
+st.markdown(
+    """
+    <div class="app-header">
+        <h1>🌍 Travel Planner</h1>
+        <p>Tell me where you want to go — I'll put together a plan.</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ----------------------------------------------------------------------------
+# Session state
+# ----------------------------------------------------------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
-st.header("How can I help you in planning a trip? Let me know where do you want to visit.")
+# ----------------------------------------------------------------------------
+# Render chat history
+# ----------------------------------------------------------------------------
+for msg in st.session_state.messages:
+    avatar = "🧑" if msg["role"] == "user" else "🌍"
+    with st.chat_message(msg["role"], avatar=avatar):
+        st.markdown(msg["content"])
 
-# Chat input box at bottom
-with st.form(key="query_form", clear_on_submit=True):
-    user_input = st.text_input("User Input", placeholder="e.g. Plan a trip to Goa for 5 days")
-    submit_button = st.form_submit_button("Send")
+# ----------------------------------------------------------------------------
+# Helper: call backend and build the formatted plan
+# ----------------------------------------------------------------------------
+def get_travel_plan(question: str) -> str:
+    payload = {"question": question}
+    response = requests.post(f"{BASE_URL}/query", json=payload, timeout=60)
 
-if submit_button and user_input.strip():
-    try:
-        # # Show user message
-        # Show thinking spinner while backend processes
-        with st.spinner("Bot is thinking..."):
-            payload = {"question": user_input}
-            response = requests.post(f"{BASE_URL}/query", json=payload)
+    if response.status_code != 200:
+        raise RuntimeError(f"Bot failed to respond ({response.status_code}): {response.text}")
 
-        if response.status_code == 200:
-            answer = response.json().get("answer", "No answer returned.")
-            markdown_content = f"""# 🌍 AI Travel Plan
+    answer = response.json().get("answer", "No answer returned.")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d at %H:%M")
 
-            # **Generated:** {datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')}  
-            # **Created by:** Atriyo's Travel Agent
+    return (
+        f"**Generated:** {timestamp}\n\n"
+        f"---\n\n"
+        f"{answer}\n\n"
+        f"---\n\n"
+        f"*This travel plan was generated by AI. Please verify all information, "
+        f"especially prices, operating hours, and travel requirements before your trip.*"
+    )
 
-            ---
+# ----------------------------------------------------------------------------
+# Input: either typed or picked from sidebar examples
+# ----------------------------------------------------------------------------
+prompt = st.chat_input("e.g. Plan a trip to Goa for 5 days")
 
-            {answer}
+if "pending_prompt" in st.session_state:
+    prompt = st.session_state.pop("pending_prompt")
 
-            ---
+if prompt:
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar="🧑"):
+        st.markdown(prompt)
 
-            *This travel plan was generated by AI. Please verify all information, especially prices, operating hours, and travel requirements before your trip.*
-            """
-            st.markdown(markdown_content)
-        else:
-            st.error(" Bot failed to respond: " + response.text)
-
-    except Exception as e:
-        raise f"The response failed due to {e}"
+    with st.chat_message("assistant", avatar="🌍"):
+        with st.spinner("Planning your trip..."):
+            try:
+                plan_markdown = get_travel_plan(prompt)
+                st.markdown(plan_markdown)
+                st.download_button(
+                    "⬇️ Download plan (Markdown)",
+                    data=plan_markdown,
+                    file_name=f"travel_plan_{datetime.date.today()}.md",
+                    mime="text/markdown",
+                )
+                st.session_state.messages.append({"role": "assistant", "content": plan_markdown})
+            except requests.exceptions.ConnectionError:
+                error_msg = (
+                    "⚠️ Couldn't reach the travel planner backend. "
+                    f"Make sure it's running at `{BASE_URL}`."
+                )
+                st.error(error_msg)
+                st.session_state.messages.append({"role": "assistant", "content": error_msg})
+            except Exception as e:
+                error_msg = f"⚠️ Something went wrong: {e}"
+                st.error(error_msg)
+                st.session_state.messages.append({"role": "assistant", "content": error_msg})

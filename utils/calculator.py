@@ -15,7 +15,7 @@ class Calculator:
         return a * b
     
     @staticmethod
-    def calculate_total(*x: float) -> float:
+    def calculate_total(x: dict) -> float:
         """
         Calculate sum of the given list of numbers
 
@@ -25,7 +25,7 @@ class Calculator:
         Returns:
             float: The sum of numbers in the list x
         """
-        return sum(x)
+        return sum(float(value) for value in x.values())
     
     @staticmethod
     def calculate_daily_budget(total: float, days: int) -> float:
