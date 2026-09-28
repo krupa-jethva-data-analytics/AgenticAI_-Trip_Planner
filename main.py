@@ -7,6 +7,7 @@ import os
 import datetime
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from agents.agenticworkflow import GraphBuilder, REJECT_MESSAGE
 
 
 load_dotenv()
@@ -45,6 +46,14 @@ async def query_travel_agent(query:QueryRequest):
             final_output = output["messages"][-1].content  # Last AI response
         else:
             final_output = str(output)
+
+
+        # NEW: if the guardrail rejected the question, don't save a document
+        if final_output == REJECT_MESSAGE:
+            return {"answer": final_output,
+                    "file_path": None
+                    }
+
 
         # Save the generated travel plan
         file_path = save_document(final_output)
