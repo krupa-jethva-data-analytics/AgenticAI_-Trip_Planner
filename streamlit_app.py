@@ -114,7 +114,7 @@ for msg in st.session_state.messages:
 # ----------------------------------------------------------------------------
 def get_travel_plan(question: str) -> str:
     payload = {"question": question}
-    response = requests.post(f"{BASE_URL}/query", json=payload, timeout=60)
+    response = requests.post(f"{BASE_URL}/query", json=payload, timeout=180)
 
     if response.status_code != 200:
         raise RuntimeError(f"Bot failed to respond ({response.status_code}): {response.text}")
