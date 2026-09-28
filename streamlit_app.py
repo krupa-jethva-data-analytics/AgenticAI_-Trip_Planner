@@ -4,13 +4,14 @@ import datetime
 
 BASE_URL = "https://agenticai-trip-planner-yc94.onrender.com"  # Backend endpoint
 
+
 # ----------------------------------------------------------------------------
 # Page config
 # ----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Travel Planner Agentic Application",
     page_icon="🌍",
-    layout="centered",
+    layout="centered", 
     initial_sidebar_state="expanded",
 )
 
